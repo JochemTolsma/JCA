@@ -1,0 +1,22 @@
+name: "Social segregation - JCA"
+output_dir: "docs"
+exclude: "data"
+navbar:
+  title: "Social segregation"
+  left:
+    - text: "Social segregation"
+      href: index.html
+    - text: "Core Discussion Network"
+      href: CDN.html
+    - text: "Partners"
+      href: partners.html
+  right:
+    - icon: fab fa-github
+      href: https://github.com/JochemTolsma
+output:
+  html_document:
+    theme: flatly
+    highlight: default
+    include:
+      after_body: footer.html
+    
