@@ -155,6 +155,13 @@ attributes(liss_wide$rel_alter1.1)
 
 ```{r}
 
+attributes(liss_wide$origin_alter1.1)
+attributes(liss_wide$origin.5)
+
+#table(liss_long$origin, useNA="always")
+
+
+
 liss_long %>%
   mutate(#size
         cdn_size = 5 - rowSums(is.na(cbind(alter_id_1, alter_id_2, alter_id_3, alter_id_4, alter_id_5))),
@@ -190,15 +197,31 @@ liss_long %>%
         leeftijd_I = rowSums(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5)==leeftijd_cat13, na.rm=T),
         leeftijd_E = rowSums(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5)!=leeftijd_cat13, na.rm=T),
         leeftijd_EI =  - ((leeftijd_E - leeftijd_I) / (leeftijd_E + leeftijd_I)),
-         
-         ego_id = nomem_encr) %>%
+        
+        #etni
+        etni3 = recode(as.numeric(origin), '0' = 1, '101'=2, '102'= 3, '201' = 2, '202' = 3, '999'=-1, .default=-1 ),
+        etni3 = na_if(etni3, -1), 
+        etni3 = structure(etni3, labels=c("D", "W", "NW")),
+         across(c(origin_alter1,origin_alter2,origin_alter3,origin_alter4,origin_alter5), ~as.numeric(.x), .names = "{.col}_etni3"),
+         across(c(origin_alter1_etni3,origin_alter2_etni3,origin_alter3_etni3,origin_alter4_etni3,origin_alter5_etni3), ~recode(.x, '1'=1, '2'=3, '3'=3, '4'=3, '5'=3 , '6'=2, '7' = 3, '8' = 2, '9' = -1, .default=-1)),
+         across(c(origin_alter1_etni3,origin_alter2_etni3,origin_alter3_etni3,origin_alter4_etni3,origin_alter5_etni3), ~na_if(.x, -1)),
+         etni_I = rowSums(cbind(origin_alter1_etni3, origin_alter2_etni3, origin_alter3_etni3, origin_alter4_etni3 ,origin_alter5_etni3)==etni3, na.rm=T),
+         etni_E = rowSums(cbind(origin_alter1_etni3,origin_alter2_etni3,origin_alter3_etni3,origin_alter4_etni3,origin_alter5_etni3)!=etni3, na.rm=T),
+         etni_EI =  - ((etni_E - etni_I) / (etni_E + etni_I)),
+        
+          ego_id = nomem_encr) %>%
   filter(!is.na(pol_int))   %>%
-  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, cdn_size, cdn_neduc_h, educ_EI, cdn_ngender_2, gender_EI, leeftijd_EI) -> datajt
+  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, cdn_neduc_h, educ_EI, cdn_ngender_2, gender_EI, leeftijd_EI, etni_EI, origin_alter1_etni3, origin_alter2_etni3, origin_alter3_etni3, origin_alter4_etni3, origin_alter5_etni3) -> datajt
+
+table(datajt$etni3, useNA = "always")
+table(datajt$origin_alter1, useNA = "always")
+table(datajt$origin_alter1_etni3, useNA = "always")
+
 
 #make similar dataset for non-kin. dus gooi alle alters weg met rel_alter - 1 2,3,4,5
 # quickest would probably be to go from wide to long, select and go back to wide. but...
 
-
+###etni nog toevoegen!
 liss_long %>%
   mutate(across(c(rel_alter1,rel_alter2,rel_alter3,rel_alter4,rel_alter5), ~replace_na(.x, -1)),
          alter_id_1 = ifelse(rel_alter1>0 & rel_alter1<6, NA, alter_id_1), 
@@ -603,7 +626,7 @@ datajt_nk %>%
     se_w = sd_w / sqrt(N) , #is this correct??
     ci_w = se_w * qt(conf.interval/2 + .5, N-1)) %>%   
   na.omit() -> tgc_nk
-
+ 
 ``` 
 ```{r}
 
@@ -626,6 +649,48 @@ ggplot(tgc_nk, aes(x=as.numeric(survey_wave), y=cdn_leeftijd_EIM, colour=as.fact
           legend.position="right")  
   
 ```
+
+## Etnicity
+
+```{r}
+
+datajt %>% 
+  filter(!is.na(etni3)) %>%
+  group_by(survey_wave, etni3) %>%
+  summarise(N = n(),
+            cdn_etni_EIM = mean(etni_EI, na.rm=T),
+            sd = sd(etni_EI, na.rm=T),
+            cdn_etni_EIM_w = wtd.mean(etni_EI, cdn_size, normwt = FALSE, na.rm = TRUE), #perhaps better to set normwt to TRUE
+            sd_w = sqrt(wtd.var(etni_EI, cdn_size, normwt = FALSE, na.rm = TRUE))) %>%
+  mutate(
+    conf.interval = .95,
+    se = sd / sqrt(N) ,
+    ci = se * qt(conf.interval/2 + .5, N-1),
+    se_w = sd_w / sqrt(N) , #is this correct??
+    ci_w = se_w * qt(conf.interval/2 + .5, N-1)) %>%   
+  na.omit() -> tgc
+
+hist(tgc$cdn_etni_EIM)
+```
+
+```{r}
+ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_etni_EIM, colour=as.factor(etni3))) + 
+    geom_errorbar(aes(ymin=cdn_etni_EIM-ci, ymax=cdn_etni_EIM+ci), width=.6, position=position_dodge(0.1)) +
+    geom_line(position=position_dodge(0.1)) +
+    geom_point(position=position_dodge(0.1)) + 
+    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2008:2018))) +
+    scale_y_continuous(breaks = c(-1,-.5,0,.5,1), limits = c(-1,1)) + 
+    labs(title = "Etnic homogeneity \n (EI-index, higher scores more homogeneity)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
+       y = "EI-index", x="period") + 
+    scale_colour_hue(name="etni ego",    # Legend label, use darker colors
+                     #breaks=c("1", "2"),
+                     labels=c("D", "W", "NW"),
+                     l=40)       +              # Use darker colors, lightness=40
+    theme(legend.justification=c(1,0),
+          legend.position="right")  
+```
+
+
 
 
 
