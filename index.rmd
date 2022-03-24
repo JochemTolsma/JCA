@@ -47,7 +47,7 @@ klippy::klippy(position = c('top', 'right'))
 
 This [website](https://jochemtolsma.github.io/JCA/) is a replication package for presentation at JCA by @Tolsma2021.
 
-It contains R code to replicate all the Tables and Figures.
+It contains R code to replicate all the Figures.
 
 To copy the code click the button in the upper right corner of the code-chunks.
 

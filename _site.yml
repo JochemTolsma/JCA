@@ -6,10 +6,10 @@ navbar:
   left:
     - text: "Social segregation"
       href: index.html
-    - text: "Core Discussion Network"
-      href: CDN.html
-    - text: "Partners"
-      href: partners.html
+    - text: "LISS"
+      href: LISS.html
+    - text: "Results"
+      href: results.html
   right:
     - icon: fab fa-github
       href: https://github.com/JochemTolsma
