@@ -1,0 +1,149 @@
+---
+title: "Social segregation"
+author: '[Jochem Tolsma](https://www.jochemtolsma.nl) - Radboud University / University of Groningen, the Netherlands'
+bibliography: references.bib
+date: "Last compiled on `r format(Sys.time(), '%B, %Y')`"
+output: 
+  html_document:
+    css: tweaks.css
+    toc:  true
+    toc_float: true
+    number_sections: true
+    code_folding: show
+    code_download: yes
+---
+
+```{r globalsettings, echo=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=100),tidy=TRUE, warning = FALSE, message = FALSE,comment = "#>", cache=TRUE, echo=FALSE, class.source=c("test"), class.output=c("test2"))
+options(width = 100)
+rgl::setupKnitr()
+```
+
+```{r colorize, echo=FALSE}
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+            x)
+  } else x
+}
+
+```
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c('top', 'right'))
+#klippy::klippy(color = 'darkred')
+#klippy::klippy(tooltip_message = 'Click to copy', tooltip_success = 'Done')
+```
+
+
+---
+
+
+#  Intro
+
+
+This [website](https://jochemtolsma.github.io/JCA/) is a replication package for presentation at JCA by @Tolsma2021.
+
+It contains R code to replicate all the Figures.
+
+To copy the code click the button in the upper right corner of the code-chunks.
+
+Use the top menu to navigate to the section of interest. 
+
+The source code of this website can be found on [Github](https://github.com/JochemTolsma/JCA)
+
+Questions can be addressed to [Jochem Tolsma](mailto:jochem.tolsma@ru.nl).
+
+---  
+
+<!---
+
+# Custom functions
+
+- `pacage.check`: Check if packages are installed (and install if not) in R ([source](https://vbaliga.github.io/verify-that-r-packages-are-installed-and-loaded/)).  
+
+
+```{r, results='hide'}
+fpackage.check <- function(packages) {
+  lapply(packages, FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  })
+}
+```
+
+---  
+
+# Packages
+
+
+- `packagename`: explain package
+
+```{r, results='hide'}
+packages = c("tidyverse")
+
+fpackage.check(packages)
+
+```
+
+--- 
+
+--->
+
+
+
+## Introduction {.tabset .tabset-fade} 
+
+- What is the social problem? 
+
+Many of us know intuitively what segregation is. 
+Segregation is everywhere. 
+look at your neighbour. I bet your neighbour is from the same university or institution as you are, has the same gender, is approximately the same age, more or less the same seniority, ethnic background. I am sure I will loose some bets. I see that ... is sitting to .... But 
+
+give some examples in the tabs?
+- ethnic residential segregation.
+- educational/ability segregation in the educational system
+- gender segregation in the fields of academia. 
+- age segregation in politics
+
+Why would social segregation be a social problem? 
+Should the JCA have allocated the seats to specific persons to guarantee maximum mixing? This seems an absurd idea right? Well, it is not that absurd. give some strange policy examples for mixing. 
+
+Segregation is supposedly a social problem because it would deepen social division lines within society. It would lead to new forms of inequality and exacerbate existing inequalities, it would lead to echo chambers and opinion polarization, it would lead to hostility between groups and violence. Segregation is a threat to the economic prosperity of our society and threatens democracy. And worst of all, segregation is increasing! 
+
+
+- What do we know? 
+
+Surprisingly, not that much. 
+
+- not that much about the social phenomenon of social segregation itself
+  - is it increasing? 
+  - in which context?
+  - along which social dimensions? 
+  - for which groups especially? 
+- not that much about the strength of the macro-macro associations between segregation on the hand and cohesion and inequality on the other.  
+  - quit a lot about the micro-processes giving rise to segregation but not 
+  - not that much about policies
+    - which one do we support
+    - effectiviness. 
+
+- Today. 
+
+--- 
+
+## Take Home Message  
+
+- Partners influence each others opinions.
+  - React to shocks  
+  - Convergence  
+- Influence just as strong for men/women.  
+
+---  
+
+
+## References
