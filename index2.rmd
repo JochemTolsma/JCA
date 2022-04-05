@@ -1,0 +1,177 @@
+---
+title: "Social segregation"
+---
+
+```{r globalsettings, echo=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=100),tidy=TRUE, warning = FALSE, message = FALSE,comment = "#>", cache=TRUE, echo=FALSE, class.source=c("test"), class.output=c("test2"))
+options(width = 100)
+rgl::setupKnitr()
+```
+
+```{r colorize, echo=FALSE}
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+            x)
+  } else x
+}
+
+```
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c('top', 'right'))
+#klippy::klippy(color = 'darkred')
+#klippy::klippy(tooltip_message = 'Click to copy', tooltip_success = 'Done')
+```
+
+
+---
+
+
+#  Intro
+
+
+This [website](https://jochemtolsma.github.io/JCA/) is a replication package for the presentation at JCA by @Tolsma2022.
+
+It contains R code to replicate all the Figures.
+
+To copy the code click the button in the upper right corner of the code-chunks.
+
+Use the top menu to navigate to the section of interest. 
+
+The source code of this website can be found on [Github](https://github.com/JochemTolsma/JCA)
+
+Questions can be addressed to [Jochem Tolsma](mailto:jochem.tolsma@ru.nl).
+
+
+**A big *Thank You* to `r colorize("Thijmen Jeroense", "red") for preparing the LISS data!**  
+
+---  
+
+
+
+
+
+```{r, echo=FALSE, results='hide'}
+fpackage.check <- function(packages) {
+  lapply(packages, FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  })
+}
+
+packages = c("VennDiagram", "EnvStats")
+
+fpackage.check(packages)
+```
+
+
+
+
+
+
+
+# Introduction 
+
+- My chair, supported by the James Coleman Association, has the title: **Social Divisions Between Groups**. 
+
+
+```{r, fig.cap="Fig 1. Social Divisions Between Groups"}
+
+# create Venn diagram with three sets
+v <- draw.triple.venn(area1=40, area2=40, area3=40,
+				n12=10, n23=10, n13=10, n123=5,
+				category=c("Inequality","Polarization", "segregation"), cat.dist = -.1, cat.cex=1.5,
+				col="Red",fill=c("Green","Yellow","Blue"),
+				lwd=3,
+				alpha = .3,
+				label.col = "dark red",
+				cex=1.2,
+				lty=2, 
+				ind = FALSE)
+
+#lapply(v, names)
+#lapply(v, function(i) i$label)
+v[[7]]$label <- ""
+v[[8]]$label <- ""
+v[[9]]$label <- ""
+v[[10]]$label <- ""
+v[[11]]$label <- "Social Divisions \n Between Groups"
+v[[12]]$label <- ""
+v[[13]]$label <- ""
+
+grid.newpage()
+grid.draw(v)
+grid.newpage()
+
+```
+
+---  
+
+# Inequality
+
+The unequal distribution of resources. 
+
+<iframe src="https://jtolsma.shinyapps.io/Gini2/" height="405" width="720" style="border: 1px solid #464646;" allowfullscreen="" allow="autoplay"></iframe>
+
+---  
+
+# Polarization
+
+The unequal distribution of opinions. 
+
+
+```{r}
+set.seed(1234)
+
+dat <- data.frame(group = factor(rep(c("group A","group B"), each=200)), 
+                   opinion = c(rnormTrunc(200, mean = 1, sd = 1, min = 0, max = 7),rnormTrunc(200, mean = 6, sd = 1, min = 0, max = 7)))
+ 
+# Density plots with semi-transparent fill
+ggplot(dat, aes(x=opinion, fill=group)) +
+  geom_density(alpha=.3, kernel="o") +
+  scale_x_continuous(breaks = 0:7, limits = c(-1,8) , labels = c("totally disagree", "", "","", "", "", "", "totally agree")) 
+```
+
+
+--- 
+
+
+# Segregation
+
+The unequal distribution of positions. 
+
+## Segregation along different social dimensions
+
+* Class  
+* Religion  
+* Ethnicity  
+* Age  
+* Gender  
+* Education  
+
+## Segregation in differnt social contexts. 
+
+* Geographical areas  
+* Schools  
+* Work  
+* Social Networks  
+
+# Why segregation?  
+
+- We don't much about segregation:  
+  * Is it increasing or decreasing over time?  
+  * Along which social dimension is segregation most prominent?  
+  * Within which social context is segregation most prominent?  
+  * Is segregation mainly the result of polarization and inequality or the cause for polarization and inequality?  
+  * Do we need to take action and through which policies? 
+
+---  
+
+
+# References
