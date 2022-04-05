@@ -1,8 +1,9 @@
 ---
 title: "Social segregation in Core Discussion Networks"
+bibliography: references.bib
 ---
 
-```{r globalsettings, echo=FALSE, warning=FALSE, message=FALSE}
+```{r globalsettings, echo=FALSE, warning=FALSE, message=FALSE, results="hide"}
 library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=100),tidy=TRUE, warning = FALSE, message = FALSE,comment = "#>", cache=TRUE, echo=FALSE, class.source=c("test"), class.output=c("test2"))
 options(width = 100)
@@ -27,6 +28,38 @@ klippy::klippy(position = c('top', 'right'))
 #klippy::klippy(tooltip_message = 'Click to copy', tooltip_success = 'Done')
 ```
 
+```{css style settings, echo = FALSE}
+blockquote {
+    padding: 10px 20px;
+    margin: 0 0 20px;
+    font-size: 14px;
+    border-left: 5px solid #eee;
+    background-color: rgb(255,255,224,1);
+}
+
+.test {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 0px;
+}
+
+.test2 {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 0px;
+  background-color: white;
+  color: rgb(201, 76, 76);
+}
+
+
+h1, .h1, h2, .h2, h3, .h3 {
+  margin-top: 24px;
+}
+
+
+```
 
 ```{r, results='hide', echo=FALSE}
 fpackage.check <- function(packages) {
@@ -62,10 +95,7 @@ fpackage.check(packages)
 
 ## Dependent variables
 
-- CDN size
-- CDN homogeneity  
-
-**Core Discussion Network**
+### **Core Discussion Network**
  
 > We would like to concentrate on your closest contacts now, to form a picture of the social relationships that people have.  
 > It is easier to answer these types of questions by considering concrete persons.  
@@ -74,21 +104,25 @@ fpackage.check(packages)
 > If you look back on the last six months, with whom did you discuss important things?  
 > Please enter their first names below (to a maximum of 5).  
 
----  
 
-### CDN homogeneity
-
-
-```{r, echo=FALSE, fig.cap="CDN", out.width = '70%'}
+```{r cdn, echo=FALSE, fig.cap="Figure 4. CDN", out.width = '50%'}
 knitr::include_graphics("./egonet.png")
 ```
+<br> 
+
+### **CDN homogeneity** 
 
 To measure the degree of homogeneity within the CDN we use the (reversed) Krackhard and Stern's E-I index [@krackhardt1988]. This measure captures the relative prevalence of between-group ties ($E$) and within-group ties ($I$). It can thus be interpreted as a measure of network segregation.  
 
-E-I Index: 
+E-I Index: $EI = - \frac{E-I}{E+I}$  
 
-$$EI = - \frac{E-I}{E+I}$$
-We use a reversed version, so higher scores indicate more homogeneity: 1 is maximum homogeneity; -1 is maximum heterogeneity.
+We use a reversed version, so higher scores indicate more homogeneity: 
+
+- 1 is maximum homogeneity  
+- -1 is maximum heterogeneity  
+
+
+For Figure 4:  
 
 * Color homogeneity = $- \frac{2-3}{2+3}$ = +0.2.  
 * Shape homogeneity = $- \frac{3-2}{2+3}$ = -0.2.  
@@ -98,10 +132,24 @@ We use a reversed version, so higher scores indicate more homogeneity: 1 is maxi
 
 ## Independent variables
 
-- Education: low (primary, vbo), medium (MBO, HAVO, VWO), Professional college (HBO), University   
-- Gender: male / female  
-- Age: birth year  
-- Ethnicity: native Dutch, non-western, western  
+- Education: 
+    * low (primary, vmbo)  
+    * medium (MBO, HAVO, VWO)  
+    * Professional college (HBO)  
+    * University   
+- Gender:
+    * male  
+    * female  
+- Age: 
+    * birth year  
+    * five year categories  
+- Ethnicity:  
+    * native Dutch  
+    * non-western  
+    * western  
+
+
+---  
 
 ## Representivity
 
@@ -150,8 +198,9 @@ We prepared two datasets, one in which we included all alters and one in which w
 This presentation we will use infomration on all alters. 
 ---> 
 
+# Some data wrangling  
 
-```{r, echo=FALSE, eval=FALSE}
+```{r, echo=TRUE, eval=FALSE}
 load(file="./data/liss_jca_jochem_V1.rds")
 
 liss_long %>%
@@ -307,3 +356,5 @@ rm(list=ls())
 ```
 
 --- 
+
+# References

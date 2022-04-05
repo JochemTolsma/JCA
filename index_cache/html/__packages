@@ -1,3 +1,4 @@
+base
 knitr
 tidyverse
 ggplot2
@@ -14,7 +15,13 @@ survival
 Formula
 Hmisc
 plotly
-base
+rgl
 futile.logger
 VennDiagram
 EnvStats
+sp
+spData
+sf
+spdep
+geosphere
+truncnorm

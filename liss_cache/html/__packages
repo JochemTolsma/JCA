@@ -15,3 +15,13 @@ survival
 Formula
 Hmisc
 plotly
+rgl
+futile.logger
+VennDiagram
+EnvStats
+sp
+spData
+sf
+spdep
+geosphere
+truncnorm
