@@ -3,14 +3,7 @@ title: "Social segregation in Core Discussion Networks"
 author: '[Jochem Tolsma](https://www.jochemtolsma.nl) - Radboud University / University of Groningen, the Netherlands'
 bibliography: references.bib
 date: "Last compiled on `r format(Sys.time(), '%B, %Y')`"
-output: 
-  html_document:
-    css: tweaks.css
-    toc:  true
-    toc_float: true
-    number_sections: true
-    code_folding: show
-    code_download: yes
+
 ---
 
 ```{r globalsettings, echo=FALSE, warning=FALSE}
@@ -45,9 +38,9 @@ klippy::klippy(position = c('top', 'right'))
 #  Intro
 
 
-This [website](https://jochemtolsma.github.io/JCA/) is a replication package for presentation at JCA by @Tolsma2021.
+This [website](https://jochemtolsma.github.io/JCA/) is a replication package for presentation at JCA by @Tolsma2022.
 
-It contains R code to replicate all the Tables and Figures.
+It contains R code to replicate all Figures.
 
 To copy the code click the button in the upper right corner of the code-chunks.
 
@@ -61,13 +54,13 @@ Questions can be addressed to [Jochem Tolsma](mailto:jochem.tolsma@ru.nl).
 
 
 
-# Custom functions
+## Custom functions
 
 - `pacage.check`: Check if packages are installed (and install if not) in R ([source](https://vbaliga.github.io/verify-that-r-packages-are-installed-and-loaded/)). 
 
 
 
-```{r, results='hide'}
+```{r, results='hide', echo=TRUE}
 fpackage.check <- function(packages) {
   lapply(packages, FUN = function(x) {
     if (!require(x, character.only = TRUE)) {
@@ -82,17 +75,17 @@ fpackage.check <- function(packages) {
 
 ---  
 
-# Packages
+## Packages
 
 
 - `tidyverse`: if you can't base them, join them  
-- `haven`: because we have haven labelled vars in the dataset.  
+- `haven`: because we have haven-labelled vars in the dataset.  
 - `Hmisc`: for weighted mean/sd  
-- 'plotly`: for interactive plots
+- `plotly`: for interactive plots
 
 
 
-```{r, results='hide'}
+```{r, results='hide', echo=TRUE}
 packages = c("tidyverse", "haven", "Hmisc", "plotly")
 
 fpackage.check(packages)
@@ -101,13 +94,48 @@ fpackage.check(packages)
 
 --- 
 
-# Dataset
+# LISS  
 
-```{r}
+
+<a href="https://www.lissdata.nl/">
+  <img src="lisslogo_0.png">
+  </a>
+
+## Dependent variables
+
+- CDN size
+- CDN homogeneity  
+
+**Core Discussion Network**
+
+> We would like to concentrate on your closest contacts now, to form a picture of the social relationships that people have.  
+> It is easier to answer these types of questions by considering concrete persons.  
+> For that reason, we ask that you list a number of persons close to you. If you wish, you can enter nicknames or initials, as long as you can remember who they refer to.  
+> Most people discuss important things with other people.  
+> If you look back on the last six months, with whom did you discuss important things?  
+> Please enter their first names below (to a maximum of 5).  
+
+### CDN homogeneity
+
+To measure the degree of homogeneity within the CDN we use the (reversed) Krackhard and Stern's E-I index @krackhardt1988. This measure captures the relative prevalence of between-group ties ($E$) and within-group ties ($I$). It can thus be interpreted as a measure of network segregation.  
+
+E-I Index: 
+
+$$ EI = - \frac{E-I}{E+I}$$
+We use a reversed version, so higher scores indicate more homogeneity: 1 is maximum homogeneity; -1 is maximum heterogeneity. 
+
+## Independent variables
+
+- Education  
+- Gender  
+- Age  
+- Ethnicity  
+
+```{r, echo=TRUE}
 load(file="./data/liss_merged_core_file_v3_0921.Rdata")
 ```
 
-## some prep
+## Representivity
 
 <!---
 Thijmen, how do I know ego participated?: just select on missings
@@ -116,7 +144,7 @@ how do I know that an alter is mentioned?: check alter_id NA
 
 Liss representative with respect to educ measured in five cats? 
 
-```{r}
+```{r, echo=TRUE}
 
 
 sample_val <- NA
@@ -144,16 +172,12 @@ test
 
 Nope, but nothing really problematic. 
 
-Okay, lets get cracking and prepare the dataset. Once with kin-alters included and once excluded. 
+## Data prep. 
 
-kin:
-```{r}
-attributes(liss_wide$rel_alter1.1)
-```
+Once with kin-alters included and once excluded. 
 
 
-
-```{r}
+```{r, echo=TRUE}
 liss_long %>%
   mutate(#size
         cdn_size = 5 - rowSums(is.na(cbind(alter_id_1, alter_id_2, alter_id_3, alter_id_4, alter_id_5))),
@@ -205,7 +229,9 @@ liss_long %>%
   filter(!is.na(pol_int))   %>%
   select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, cdn_neduc_h, educ_EI, cdn_ngender_2, gender_EI, leeftijd_EI, etni_EI, etni_E, origin_alter1_etni3, origin_alter2_etni3, origin_alter3_etni3, origin_alter4_etni3, origin_alter5_etni3) -> datajt
 
-#make similar dataset for non-kin. dus gooi alle alters weg met rel_alter - 1 2,3,4,5
+#make similar dataset for non-kin. 
+#attributes(liss_wide$rel_alter1.1)
+#dus gooi alle alters weg met rel_alter - 1 2,3,4,5
 # quickest would probably be to go from wide to long, select and go back to wide. but...
 
 liss_long %>%
@@ -299,17 +325,13 @@ test <- cut(as.numeric(liss_long$leeftijd),breaks = c(-Inf, 15, 20, 25, 30, 35, 
 ```
 
 
-
-
 --- 
 
-# Segregation in CDN {.tabset .tabset-fade}
+# CDN size {.tabset .tabset-fade}
 
-## Size {.tabset .tabset-fade}
+## Education
 
-### Education
-
-```{r}
+```{r, echo=TRUE}
 
 datajt %>% 
   group_by(survey_wave, opl4) %>%
@@ -340,9 +362,9 @@ ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_sizeM, colour=as.factor(opl4)))
           legend.position=c("right"))  
 ```
 
-### Gender
+## Gender
 
-```{r}
+```{r, echo=TRUE}
 
 datajt %>% 
   group_by(survey_wave, geslacht) %>%
@@ -373,9 +395,9 @@ ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_sizeM, colour=as.factor(geslach
           legend.position=c("right"))  
 ```
 
-### Age
+## Age
 
-```{r}
+```{r, echo=TRUE}
 
 datajt %>% 
   group_by(survey_wave, leeftijd_cat13) %>%
@@ -393,20 +415,6 @@ tgc$size <- round(tgc$cdn_sizeM, 2)
 tgc$age <- as.factor(tgc$leeftijd_cat13)
 levels(tgc$age) <- levels(test)
 
-
-
-plot <- ggplot(tgc, aes(x=period, y=size, colour=age)) +
-    geom_line() +
-    geom_errorbar(aes(ymin=cdn_sizeM-ci, ymax=cdn_sizeM+ci), width=.6, position=position_dodge(0.1)) 
-    
-ggplotly(plot)     
-
-plot
-ggplotly(plot) %>%
-  layout(annotations = list(x=1, y = - 0.1, showarrow = F, text="THE CAPTION"))
-
-
-
 plot <- ggplot(tgc, aes(x=period, y=size, colour=age)) + 
   geom_line(position=position_dodge(0.1), aes(color=age)) +  
   geom_errorbar(aes(ymin=cdn_sizeM-ci, ymax=cdn_sizeM+ci), width=.6, position=position_dodge(0.1)) +
@@ -416,70 +424,22 @@ plot <- ggplot(tgc, aes(x=period, y=size, colour=age)) +
     labs(title = "CDN-size per age", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "CDN size", x="period") + 
    scale_colour_hue(name="age ego",    # Legend label, use darker colors
-                    l=40)        +                # Use darker colors, lightness=40
+                    l=50)        +                # Use darker colors, lightness=40
     theme(legend.justification=c(1,0),
           legend.position=c("right"))  
 
-plot
+#plot
 ggplotly(plot) %>%
   layout(margin = list(b=100), annotations = list(x=2017, y = 1.9, showarrow = F, font = list(size=10), text=" \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
 
 ```
 
+## Ethnicity
 
-```{r}
-library(plotly)
-
-library(ggplot2)
-
-
-ToothGrowth$dose <- as.factor(ToothGrowth$dose)
-
-
-p <- ggplot(ToothGrowth, aes(x=dose, y=len, fill=dose)) + 
-
-  geom_boxplot()
-
-
-p <- p + theme(legend.title = element_text(colour="red", size=10, 
-
-                                      face="italic"))
-
-p <- p + theme(legend.text = element_text(colour="blue", size=10, 
-
-                                     face="bold"))
-
-
-ggplotly(p)
-
-
-# A different data set
-df1 <- data.frame(
-    sex = factor(c("Female","Female","Male","Male")),
-    time = factor(c("Lunch","Dinner","Lunch","Dinner"), levels=c("Lunch","Dinner")),
-    total_bill = c(13.53, 16.81, 16.24, 17.42)
-)
-
-# A basic graph
-lp <- ggplot(data=df1, aes(x=time, y=total_bill, group=sex, shape=sex)) + geom_line() + geom_point()
-lp
-
-# Change the legend
-lp + scale_shape_discrete(name  ="Payer",
-                          breaks=c("Female", "Male"),
-                          labels=c("Woman", "Man"))
-
-
-```
-
-
-
-Try to filter out age effect
-```{r}
+```{r, echo=TRUE}
 
 datajt %>% 
-  filter(leeftijd>24 & leeftijd<30) %>%
-  group_by(survey_wave, opl4) %>%
+  group_by(survey_wave, etni3) %>%
   summarise(N = n(),
             cdn_sizeM = mean(cdn_size, na.rm=T),
             sd = sd(cdn_size, na.rm=T)) %>%
@@ -489,58 +449,42 @@ datajt %>%
     ci = se * qt(conf.interval/2 + .5, N-1)) %>% 
   na.omit() -> tgc
 
+tgc$period <- as.numeric(tgc$survey_wave) + 2007
+tgc$size <- round(tgc$cdn_sizeM, 2)
 
+tgc$etni <- as.factor(tgc$etni3)
+levels(tgc$etni) <- c("Dutch", "Western", "non-Western")
 
-ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_sizeM, colour=as.factor(opl4))) + 
-    geom_errorbar(aes(ymin=cdn_sizeM-ci, ymax=cdn_sizeM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
+plot <- ggplot(tgc, aes(x=period, y=size, colour=etni)) + 
+  geom_line(position=position_dodge(0.1)) +  
+  geom_errorbar(aes(ymin=cdn_sizeM-ci, ymax=cdn_sizeM+ci), width=.6, position=position_dodge(0.1)) +
     geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12)) +
-    scale_y_continuous(breaks = 1:5, limits = c(1,4)) + 
-    labs(title = "CDN-size per education", caption = "Note: 95% CI \n Source: CentERdata 2021", 
+    scale_x_continuous(breaks = 2011:2018, limits = c(2010,2019) , labels = as.character(c(2011:2018))) +
+    scale_y_continuous(breaks = 1:5, limits = c(1.8,3.5)) + 
+    labs(title = "CDN-size per ethnicity", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "CDN size", x="period") + 
-    scale_colour_hue(name="education ego",    # Legend label, use darker colors
-                     breaks=c("1", "2", "3", "4"),
-                     labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
-                     l=40)       +              # Use darker colors, lightness=40
+   scale_colour_hue(name="ethnicity ego",    # Legend label, use darker colors
+                    l=50)        +                # Use darker colors, lightness=40
     theme(legend.justification=c(1,0),
-          legend.position=c(.98,.58))  
+          legend.position=c("right"))  
+plot
+#plot
+ggplotly(plot) %>%
+  layout(margin = list(b=100), annotations = list(x=2018, y = 1.8, showarrow = F, font = list(size=10), text="\n  \n \n  \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
+
 ```
 
 
+# Segregation in CDN {.tabset .tabset-fade}
 
-```{r}
-datajt %>% 
-  group_by(survey_wave, opl4) %>%
-  summarise(N = n(),
-            cdn_neduc_hM = mean(cdn_neduc_h, na.rm=T),
-            sd = sd(cdn_neduc_h, na.rm=T)) %>%
-  mutate(
-    se = sd / sqrt(N) ,
-    conf.interval = .95,
-    ci = se * qt(conf.interval/2 + .5, N-1)) %>% 
-  na.omit() -> tgc
 
-ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_neduc_hM, colour=as.factor(opl4))) + 
-    geom_errorbar(aes(ymin=cdn_neduc_hM-ci, ymax=cdn_neduc_hM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12)) +
-    scale_y_continuous(breaks = 0:2, limits = c(0,2.8)) + 
-    labs(title = "Number of university educated alters \n per education", caption = "Note: 95% CI \n Source: CentERdata 2021", 
-       y = "CDN size", x="period") + 
-    scale_colour_hue(name="education ego",    # Legend label, use darker colors
-                     breaks=c("1", "2", "3", "4"),
-                     labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position=c(.98,.54))  
+EI-Index: 
 
 
 
-```
+## Education
 
-```{r}
+```{r, echo=TRUE}
 datajt %>% 
   filter(leeftijd>24 & !is.na(opl4)) %>%
   group_by(survey_wave, opl4) %>%
@@ -558,7 +502,6 @@ datajt %>%
   na.omit() -> tgc
 
 
-
 datajt_nk %>% 
   filter(leeftijd>24) %>%
   group_by(survey_wave, opl4) %>%
@@ -572,106 +515,47 @@ datajt_nk %>%
   na.omit() -> tgc_nk
 
 ``` 
-```{r}
 
-ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_educ_EIM, colour=as.factor(opl4))) + 
-    geom_errorbar(aes(ymin=cdn_educ_EIM-ci, ymax=cdn_educ_EIM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2008:2018))) +
-    scale_y_continuous(breaks = -1:1, limits = c(-1,1)) + 
-    labs(title = "Educational homogeneity in CDN\n per education ", caption = "Note: 95% CI \n Source: CentERdata 2021 \n (own calculations)", 
+```{r, echo=TRUE}
+
+
+tgc$period <- as.numeric(tgc$survey_wave) + 2007
+tgc$homogeneity <- round(tgc$cdn_educ_EIM, 2)
+tgc$education <- as.factor(tgc$opl4)
+levels(tgc$education) <- c("primary + vmbo", "havo/vwo/mbo", "hbo", "university")
+
+
+plot <- ggplot(tgc, aes(x=period, y=homogeneity, colour=education)) + 
+  geom_line(position=position_dodge(0.1)) +
+  geom_errorbar(aes(ymin=homogeneity-ci, ymax=homogeneity+ci), width=.6, position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1)) + 
+  scale_x_continuous(breaks = 2008:2018, limits = c(2007, 2019), labels = as.character(c(2008:2018))) +
+  scale_y_continuous(breaks = -1:1, limits = c(-1,1)) + 
+  labs(title = "Educational homogeneity in CDN", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "EI-index", x="period") + 
-    scale_colour_hue(name="education ego",    # Legend label, use darker colors
-                     breaks=c("1", "2", "3", "4"),
-                     labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position="right")  
+  scale_colour_hue(name="education ego",    # Legend label, use darker colors
+                   #breaks=c("1", "2", "3", "4"),
+                   #labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
+                   l=40)       +              # Use darker colors, lightness=40
+  theme(legend.justification=c(1,0),
+        legend.position="right")  
 
 
-#legend.position=c(.22,.1))
-
-
-```
-
-```{r}
-
-ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_educ_EIM_w, colour=as.factor(opl4))) + 
-    geom_errorbar(aes(ymin=cdn_educ_EIM_w-ci_w, ymax=cdn_educ_EIM_w+ci_w), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2011:2021))) +
-    scale_y_continuous(breaks = -1:1, limits = c(-1,1)) + 
-    labs(title = "Educational homogeneity \n per education \n weighted by CDN size ", caption = "Note: 95% CI \n Source: CentERdata 2021", 
-       y = "EI-index", x="period") + 
-    scale_colour_hue(name="education ego",    # Legend label, use darker colors
-                     breaks=c("1", "2", "3", "4"),
-                     labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position="right")  
+#plot
+#plot
+ggplotly(plot) %>%
+  layout(margin = list(b=100), annotations = list(x=2018, y = -1.1, showarrow = F, font = list(size=10), text="\n \n  \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
 
 
 
 ```
 
+---  
 
-```{r}
-
-ggplot(tgc_nk, aes(x=as.numeric(survey_wave), y=cdn_educ_EIM, colour=as.factor(opl4))) + 
-    geom_errorbar(aes(ymin=cdn_educ_EIM-ci, ymax=cdn_educ_EIM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12)) +
-    scale_y_continuous(breaks = -1:1, limits = c(-1,1)) + 
-    labs(title = "Educational homogeneity \n per education \n (older than 24 & nokin)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
-       y = "CDN size", x="period") + 
-    scale_colour_hue(name="education ego",    # Legend label, use darker colors
-                     breaks=c("1", "2", "3", "4"),
-                     labels=c("primary + vmbo", "havo/vwo/mbo", "hbo", "university"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position=c(.22,.1))  
+## Gender 
 
 
-
-```
-
-
-
-## Gender  
-
-```{r}
-
-datajt %>% 
-  filter(!is.na(geslacht)) %>%
-  group_by(survey_wave, geslacht) %>%
-  summarise(N = n(),
-            cdn_ngender_2M = mean(cdn_ngender_2, na.rm=T),
-            sd = sd(cdn_ngender_2, na.rm=T)) %>%
-  mutate(
-    se = sd / sqrt(N) ,
-    conf.interval = .95,
-    ci = se * qt(conf.interval/2 + .5, N-1)) -> datac
-
-ggplot(datac, aes(x=as.numeric(survey_wave), y=cdn_ngender_2M, colour=as.factor(geslacht))) + 
-    geom_errorbar(aes(ymin=cdn_ngender_2M-ci, ymax=cdn_ngender_2M+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2011:2021))) +
-    scale_y_continuous(breaks = 0:3, limits = c(0,3)) + 
-    labs(title = "Female confidants \n gender", caption = "Note: 95% CI \n Source: CentERdata 2021", 
-       y = "number of female confidants", x="period") + 
-    scale_colour_hue(name="gender ego",    # Legend label, use darker colors
-                     breaks=c("2", "1"),
-                     labels=c("female", "male"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position=c(.98,.68))  
-  
-```
-```{r}
+```{r, echo=TRUE}
 datajt %>% 
   filter(cdn_size>0 & !is.na(geslacht)) %>%
   group_by(survey_wave, geslacht) %>%
@@ -681,73 +565,45 @@ datajt %>%
   mutate(
     se = sd / sqrt(N) ,
     conf.interval = .95,
-    ci = se * qt(conf.interval/2 + .5, N-1)) -> datac
+    ci = se * qt(conf.interval/2 + .5, N-1)) -> tgc
 
-ggplot(datac, aes(x=as.numeric(survey_wave), y=gender_EI_mean, colour=as.factor(geslacht))) + 
-    geom_errorbar(aes(ymin=gender_EI_mean-ci, ymax=gender_EI_mean+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2011:2021))) +
-    scale_y_continuous(breaks = c(-.5,0,.5), limits = c(-.5,.5)) + 
-    labs(title = "Gender homogeneity in CDN \n (EI-index, higher scores more homogeneity)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
+tgc$period <- as.numeric(tgc$survey_wave) + 2007
+tgc$homogeneity <- round(tgc$gender_EI_mean, 2)
+tgc$gender <- as.factor(tgc$geslacht)
+levels(tgc$gender) <- c("male", "female")
+
+plot <- ggplot(tgc, aes(x=period, y=homogeneity, colour=gender)) + 
+  geom_line(position=position_dodge(0.1)) +
+  geom_errorbar(aes(ymin=homogeneity-ci, ymax=homogeneity+ci), width=.6, position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1)) + 
+  scale_x_continuous(breaks = 2008:2018, limits = c(2007,2019), labels = as.character(c(2008:2018))) +
+  scale_y_continuous(breaks = c(-.5,0,.5), limits = c(-.5,.5)) + 
+  labs(title = "Gender homogeneity in CDN", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "EI-index", x="period") + 
-    scale_colour_hue(name="gender ego",    # Legend label, use darker colors
-                     breaks=c("2", "1"),
-                     labels=c("female", "male"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position="right")  
-  
+  scale_colour_hue(name="gender ego",    # Legend label, use darker colors
+                   #breaks=c("2", "1"),
+                   #labels=c("female", "male"),
+                   l=40)       +              # Use darker colors, lightness=40
+  theme(legend.justification=c(1,0),
+        legend.position="right")  
+
+ggplotly(plot) %>%
+  layout(margin = list(b=100), annotations = list(x=2018, y = -.5, showarrow = F, font = list(size=10), text="\n \n \n \n  \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
 
 ```
 
-```{r}
+---  
 
-
-
-datajt_nk %>% 
-  filter(cdn_size>0 & !is.na(geslacht)) %>%
-  group_by(survey_wave, geslacht) %>%
-  summarise(N = n(),
-            gender_EI_mean = mean(gender_EI, na.rm=T),
-            sd = sd(gender_EI, na.rm=T)) %>%
-  mutate(
-    se = sd / sqrt(N) ,
-    conf.interval = .95,
-    ci = se * qt(conf.interval/2 + .5, N-1)) -> datac
-
-ggplot(datac, aes(x=as.numeric(survey_wave), y=gender_EI_mean, colour=as.factor(geslacht))) + 
-    geom_errorbar(aes(ymin=gender_EI_mean-ci, ymax=gender_EI_mean+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12)) +
-    scale_y_continuous(breaks = c(-.5,0,.5,1), limits = c(0,1)) + 
-    labs(title = "gender homophily \n (EI-index, higher scores more homogeneity)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
-       y = "gender homophily", x="period") + 
-    scale_colour_hue(name="gender ego",    # Legend label, use darker colors
-                     breaks=c("1", "2"),
-                     labels=c("male", "female"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position=c(.98,.18))  
-  
-
-
-```
-
-
-
-
-## leeftijd
+## Age  
 
 ```{r}
 datajt %>% 
-  filter(!is.na(leeftijd) & leeftijd>24) %>%
+  filter(!is.na(leeftijd)) %>%
   group_by(survey_wave, leeftijd_cat13) %>%
   summarise(N = n(),
             cdn_leeftijd_EIM = mean(leeftijd_EI, na.rm=T),
             sd = sd(leeftijd_EI, na.rm=T),
-            cdn_educ_EIM_w = wtd.mean(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE), #perhaps better to set normwt to TRUE
+            cdn_leeftijd_EIM_w = wtd.mean(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE), #perhaps better to set normwt to TRUE
             sd_w = sqrt(wtd.var(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE))) %>%
   mutate(
     conf.interval = .95,
@@ -760,12 +616,12 @@ datajt %>%
 
 
 datajt_nk %>% 
-   filter(!is.na(leeftijd)) %>%
+  filter(!is.na(leeftijd)) %>%
   group_by(survey_wave, leeftijd_cat13) %>%
   summarise(N = n(),
             cdn_leeftijd_EIM = mean(leeftijd_EI, na.rm=T),
             sd = sd(leeftijd_EI, na.rm=T),
-            cdn_educ_EIM_w = wtd.mean(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE), #perhaps better to set normwt to TRUE
+            cdn_leeftijd_EIM_w = wtd.mean(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE), #perhaps better to set normwt to TRUE
             sd_w = sqrt(wtd.var(leeftijd_EI, cdn_size, normwt = FALSE, na.rm = TRUE))) %>%
   mutate(
     conf.interval = .95,
@@ -774,31 +630,48 @@ datajt_nk %>%
     se_w = sd_w / sqrt(N) , #is this correct??
     ci_w = se_w * qt(conf.interval/2 + .5, N-1)) %>%   
   na.omit() -> tgc_nk
- 
-``` 
-```{r}
+
 
 test <- cut(as.numeric(liss_long$leeftijd),breaks = c(-Inf, 15, 20, 25, 30, 35, 40,45,50,55,60,65,70, Inf))
 #levels(test)
 
-ggplot(tgc_nk, aes(x=as.numeric(survey_wave), y=cdn_leeftijd_EIM, colour=as.factor(leeftijd_cat13))) + 
-    geom_errorbar(aes(ymin=cdn_leeftijd_EIM-ci, ymax=cdn_leeftijd_EIM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2011:2021))) +
-    scale_y_continuous(breaks = c(-.5,0,.5), limits = c(-1,.8)) + 
-    labs(title = "Age homogeneity \n (EI-index, higher scores more homogeneity)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
+
+tgc$period <- as.numeric(tgc$survey_wave) + 2007
+tgc$homogeneity <- round(tgc$cdn_leeftijd_EIM, 2)
+tgc$age <- as.factor(tgc$leeftijd_cat13)
+levels(tgc$age) <- levels(test)
+
+
+``` 
+
+```{r}
+
+
+plot <- ggplot(tgc, aes(x=period, y=homogeneity, colour=age)) + 
+  geom_line(position=position_dodge(0.1)) +
+  geom_errorbar(aes(ymin=homogeneity-ci, ymax=homogeneity+ci), width=.6, position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1)) + 
+  scale_x_continuous(breaks = 2008:2018, limits = c(2007,2019), labels = as.character(c(2008:2018))) +
+  scale_y_continuous(breaks = c(-.5,0,.5), limits = c(-.8,.5)) + 
+  labs(title = "Age homogeneity", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "EI-index", x="period") + 
-    scale_colour_hue(name="age ego",    # Legend label, use darker colors
-                     #breaks=c("1", "2"),
-                     labels=levels(test),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position="right")  
-  
+  scale_colour_hue(name="age ego",    # Legend label, use darker colors
+                   #breaks=c("1", "2"),
+                   #labels=levels(test),
+                   l=40)       +              # Use darker colors, lightness=40
+  theme(legend.justification=c(1,0),
+        legend.position="right")  
+
+ggplotly(plot) %>%
+  layout(margin = list(b=100), annotations = list(x=2018, y = -.8, showarrow = F, font = list(size=10), text="\n \n \n \n  \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
 ```
 
-## Etnicity
+
+
+---  
+
+## Ethnicity  
+
 
 ```{r}
 
@@ -818,38 +691,48 @@ datajt %>%
     ci_w = se_w * qt(conf.interval/2 + .5, N-1)) %>%   
   na.omit() -> tgc
 
-hist(tgc$cdn_etni_EIM)
+tgc$period <- as.numeric(tgc$survey_wave) + 2007
+tgc$homogeneity <- round(tgc$cdn_etni_EIM, 2)
+tgc$ethnicity <- as.factor(tgc$etni3)
+levels(tgc$ethnicity) <- c("Dutch", "Western", "non-Western")
+
+
+
 ```
 
 ```{r}
-ggplot(tgc, aes(x=as.numeric(survey_wave), y=cdn_etni_EIM, colour=as.factor(etni3))) + 
-    geom_errorbar(aes(ymin=cdn_etni_EIM-ci, ymax=cdn_etni_EIM+ci), width=.6, position=position_dodge(0.1)) +
-    geom_line(position=position_dodge(0.1)) +
-    geom_point(position=position_dodge(0.1)) + 
-    scale_x_continuous(breaks = 1:11, limits = c(0,12), labels = as.character(c(2008:2018))) +
-    scale_y_continuous(breaks = c(-1,-.5,0,.5,1), limits = c(-1,1)) + 
-    labs(title = "Etnic homogeneity \n (EI-index, higher scores more homogeneity)", caption = "Note: 95% CI \n Source: CentERdata 2021", 
+plot <- ggplot(tgc, aes(x=period, y=homogeneity, colour=ethnicity)) + 
+  geom_line(position=position_dodge(0.1)) +
+  geom_errorbar(aes(ymin=homogeneity-ci, ymax=homogeneity+ci), width=.6, position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1)) + 
+  scale_x_continuous(breaks = 2011:2018, limits = c(2010,2019), labels = as.character(c(2011:2018))) +
+  scale_y_continuous(breaks = c(-1,-.5,0,.5,1), limits = c(-1,1)) + 
+  labs(title = "Ethnic homogeneity", caption = "Note: 95% CI \n Source: CentERdata 2021", 
        y = "EI-index", x="period") + 
-    scale_colour_hue(name="etni ego",    # Legend label, use darker colors
-                     #breaks=c("1", "2"),
-                     labels=c("D", "W", "NW"),
-                     l=40)       +              # Use darker colors, lightness=40
-    theme(legend.justification=c(1,0),
-          legend.position="right")  
+  scale_colour_hue(name="ethnicity ego",    # Legend label, use darker colors
+                   #breaks=c("1", "2"),
+                   #labels=c("D", "W", "NW"),
+                   l=40)       +              # Use darker colors, lightness=40
+  theme(legend.justification=c(1,0),
+        legend.position="right")  
+
+ggplotly(plot) %>%
+  layout(margin = list(b=100), annotations = list(x=2018, y = -1, showarrow = F, font = list(size=10), text="\n \n \n \n  \n  \n \n \n \n \n Note: 95% CI \n Source: CentERdata 2021"))
 ```
 
 
 
 
+--- 
 
-## Take Home Message  
+# Take home message  
 
-- Partners influence each others opinions.
-  - React to shocks  
-  - Convergence  
-- Influence just as strong for men/women.  
+* The Core Discussion Network is segregated.  
+* The Degree of segregation is not very extreme.  
+* There is no clear trend that shows increasing segregation.  
 
----  
+--- 
+
+# References  
 
 
-## References

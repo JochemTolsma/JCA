@@ -2,21 +2,29 @@ name: "Social segregation - JCA"
 output_dir: "docs"
 exclude: "data"
 navbar:
-  title: "Social segregation"
+  title: "JC - Symposium "
   left:
     - text: "Social segregation"
       href: index.html
-    - text: "LISS"
-      href: LISS.html
-    - text: "Results"
-      href: results.html
+    #- text: "LISS"
+    #  href: LISS.html
+    #- text: "Results"
+    #  href: results.html
   right:
     - icon: fab fa-github
       href: https://github.com/JochemTolsma
 output:
   html_document:
+    css: tweaks.css
+    toc:  true
+    toc_float: true
+    number_sections: true
+    code_folding: hide
+    code_download: yes
     theme: flatly
     highlight: default
     include:
       after_body: footer.html
+    
+
     
