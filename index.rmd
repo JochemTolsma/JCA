@@ -100,7 +100,7 @@ fpackage.check <- function(packages) {
   })
 }
 
-packages = c("VennDiagram", "EnvStats")
+packages = c("VennDiagram", "EnvStats", "ggplot2", "tidyverse")
 
 fpackage.check(packages)
 ```
@@ -149,7 +149,7 @@ The unequal distribution of resources.
 <iframe src="https://jtolsma.shinyapps.io/Gini2/" height="405" width="720" style="border: 1px solid #464646;" allowfullscreen="" allow="autoplay"></iframe>
 ---> 
 
-```{r, fig.cap="Figure 2. Inequality" , out.width = '50%'}
+```{r, fig.cap="Figure 2. Inequality" , out.width = '40%'}
 knitr::include_graphics("./gini.png")
 ```
 
