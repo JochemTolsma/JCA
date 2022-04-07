@@ -91,6 +91,11 @@ fpackage.check(packages)
   <img src="lisslogo_0.png">
   </a>
 
+- We use **14 waves** : [2008,2021]  
+- We use **14.580** unique respondents  
+- We use **99.495** respondent-wave combinations  
+- We use **231.020** confidant-respondent-wave combinations  
+
 ---  
 
 ## Dependent variables
@@ -112,6 +117,8 @@ knitr::include_graphics("./egonet.png")
 
 ### **CDN homogeneity** 
 
+*Operationalization 1.* 
+
 To measure the degree of homogeneity within the CDN we use the (reversed) Krackhard and Stern's E-I index [@krackhardt1988]. This measure captures the relative prevalence of between-group ties ($E$) and within-group ties ($I$). It can thus be interpreted as a measure of network segregation.  
 
 E-I Index: $EI = - \frac{E-I}{E+I}$  
@@ -126,6 +133,18 @@ For Figure 4:
 
 * Color homogeneity = $- \frac{2-3}{2+3}$ = +0.2.  
 * Shape homogeneity = $- \frac{3-2}{2+3}$ = -0.2.  
+
+*Operationalization 2.*
+
+Similarity Index
+
+S Index = $S = 2*(\frac{\Sigma_j sim^z_{ij}}{\Sigma_j}) - 1$,  
+where $sim^z_{ij} = 1 - \frac{|z_i - z_j|}{r_z}$.  
+
+Higer scores indicate more homogeneity/similarity:  
+
+- 1 is maximum similarity  
+- -1 is maximum dissimilarity  
 
 
 ---  
@@ -201,23 +220,30 @@ This presentation we will use infomration on all alters.
 # Some data wrangling  
 
 ```{r, echo=TRUE, eval=FALSE}
-load(file="./data/liss_jca_jochem_V1.rds")
+
+load(file="./data/liss_jca_jochem_V2.rds")
+
 
 liss_long %>%
   mutate(#size
         #cdn_size = 5 - rowSums(is.na(cbind(alter_id_1, alter_id_2, alter_id_3, alter_id_4, alter_id_5))),
         cdn_size = 5 - rowSums(is.na(cbind(gender_alter1, gender_alter2, gender_alter3, gender_alter4, gender_alter5))),
         #education
+        opl_y = recode(as.numeric(oplmet), '1' = 6, '2'=10, '3'= 11.5, '4' = 10.5, '5' = 15, '6'=16, '8'=4, .default=-1 ),
+        opl_y = na_if(opl_y, -1), 
         opl4 = recode(as.numeric(oplmet), '1' = 1, '2'=1, '3'= 2, '4' = 2, '5' = 3, '6'=4, .default=-1 ),
         opl4 = na_if(opl4, -1), 
         opl4 = structure(opl4, labels=c("low", "medium", "high1", "high2")),
          across(c(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5), ~as.numeric(.x), .names = "{.col}_opl4"),
          across(c(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4), ~recode(.x, '4'=1, '6'=1, '10'=2, '10.5'=2, '11.5'=2 , '15'=3, '16' = 4, .default=-1)),
          across(c(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4), ~na_if(.x, -1)),
-         educ_I = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)==opl4,na.rm=T),
+        educ_I = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)==opl4,na.rm=T),
          educ_E = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)!=opl4,na.rm=T),
          educ_EI =  - ((educ_E - educ_I) / (educ_E + educ_I)),
          cdn_neduc_h = rowSums(cbind(educ_recode_alter1, educ_recode_alter2, educ_recode_alter3, educ_recode_alter4, educ_recode_alter5)==16, na.rm=T),
+        cdn_size_educ = 5 - rowSums(is.na(cbind(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5))), 
+        educ_sim = 2*(1- rowSums(abs((cbind(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5) - opl_y)/12), na.rm=T)/cdn_size_educ)-1,
+        
         
         #gender   
          gender_alter1 = replace_na(gender_alter1, -1),
@@ -239,6 +265,13 @@ liss_long %>%
         leeftijd_E = rowSums(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5)!=leeftijd_cat13, na.rm=T),
         leeftijd_EI =  - ((leeftijd_E - leeftijd_I) / (leeftijd_E + leeftijd_I)),
         
+        cdn_size_age = 5 - rowSums(is.na(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5))), 
+        across(c(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5), ~recode(.x, '1'=15, '2'=18, '3'=23, '4'=28, '5'=33 , '6'=38, '7' = 43,'8'= 48, '9'=53, '10'=58, '11'=63, '12'=68, '13'=75, .default=-1)),
+         across(c(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5), ~na_if(.x, -1)),
+        leeftijd_sim = 2*(1 - rowSums(abs((cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5) - as.numeric(liss_long$leeftijd))/75), na.rm=T)/cdn_size_age)-1,
+        
+        
+        
         #etni
         etni3 = recode(as.numeric(origin), '0' = 1, '101'=2, '102'= 3, '201' = 2, '202' = 3, '999'=-1, .default=-1 ),
         etni3 = na_if(etni3, -1), 
@@ -251,11 +284,13 @@ liss_long %>%
          etni_EI =  - ((etni_E - etni_I) / (etni_E + etni_I)),
         
           ego_id = nomem_encr) %>%
-  filter(!is.na(pol_int))   %>%
-  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, educ_EI, gender_EI, leeftijd_EI, etni_EI ) -> datajt
+  #filter(!is.na(pol_int))   %>%
+  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, cdn_size_educ, cdn_size_age, educ_EI,educ_sim,gender_EI, leeftijd_EI, leeftijd_sim, etni_EI ) -> datajt
 
 #make similar dataset for non-kin. dus gooi alle alters weg met rel_alter - 1 2,3,4,5
 # quickest would probably be to go from wide to long, select and go back to wide. but...
+
+attributes(liss_wide$rel_alter1.1)
 
 liss_long %>%
   mutate(across(c(rel_alter1,rel_alter2,rel_alter3,rel_alter4,rel_alter5), ~replace_na(.x, -1)),
@@ -293,20 +328,25 @@ liss_long %>%
          ) %>%
 
 
- mutate(#size
+  mutate(#size
         #cdn_size = 5 - rowSums(is.na(cbind(alter_id_1, alter_id_2, alter_id_3, alter_id_4, alter_id_5))),
         cdn_size = 5 - rowSums(is.na(cbind(gender_alter1, gender_alter2, gender_alter3, gender_alter4, gender_alter5))),
         #education
+        opl_y = recode(as.numeric(oplmet), '1' = 6, '2'=10, '3'= 11.5, '4' = 10.5, '5' = 15, '6'=16, '8'=4, .default=-1 ),
+        opl_y = na_if(opl_y, -1), 
         opl4 = recode(as.numeric(oplmet), '1' = 1, '2'=1, '3'= 2, '4' = 2, '5' = 3, '6'=4, .default=-1 ),
         opl4 = na_if(opl4, -1), 
         opl4 = structure(opl4, labels=c("low", "medium", "high1", "high2")),
          across(c(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5), ~as.numeric(.x), .names = "{.col}_opl4"),
          across(c(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4), ~recode(.x, '4'=1, '6'=1, '10'=2, '10.5'=2, '11.5'=2 , '15'=3, '16' = 4, .default=-1)),
          across(c(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4), ~na_if(.x, -1)),
-         educ_I = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)==opl4,na.rm=T),
+        educ_I = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)==opl4,na.rm=T),
          educ_E = rowSums(cbind(educ_recode_alter1_opl4,educ_recode_alter2_opl4,educ_recode_alter3_opl4,educ_recode_alter4_opl4,educ_recode_alter5_opl4)!=opl4,na.rm=T),
          educ_EI =  - ((educ_E - educ_I) / (educ_E + educ_I)),
          cdn_neduc_h = rowSums(cbind(educ_recode_alter1, educ_recode_alter2, educ_recode_alter3, educ_recode_alter4, educ_recode_alter5)==16, na.rm=T),
+        cdn_size_educ = 5 - rowSums(is.na(cbind(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5))), 
+        educ_sim = 2*(1- rowSums(abs((cbind(educ_recode_alter1,educ_recode_alter2,educ_recode_alter3,educ_recode_alter4,educ_recode_alter5) - opl_y)/12), na.rm=T)/cdn_size_educ)-1,
+        
         
         #gender   
          gender_alter1 = replace_na(gender_alter1, -1),
@@ -328,6 +368,13 @@ liss_long %>%
         leeftijd_E = rowSums(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5)!=leeftijd_cat13, na.rm=T),
         leeftijd_EI =  - ((leeftijd_E - leeftijd_I) / (leeftijd_E + leeftijd_I)),
         
+        cdn_size_age = 5 - rowSums(is.na(cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5))), 
+        across(c(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5), ~recode(.x, '1'=15, '2'=18, '3'=23, '4'=28, '5'=33 , '6'=38, '7' = 43,'8'= 48, '9'=53, '10'=58, '11'=63, '12'=68, '13'=75, .default=-1)),
+         across(c(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5), ~na_if(.x, -1)),
+        leeftijd_sim = 2*( 1 - rowSums(abs((cbind(age_alter1, age_alter2, age_alter3, age_alter4, age_alter5) - as.numeric(liss_long$leeftijd))/75), na.rm=T)/cdn_size_age)-1,
+        
+        
+        
         #etni
         etni3 = recode(as.numeric(origin), '0' = 1, '101'=2, '102'= 3, '201' = 2, '202' = 3, '999'=-1, .default=-1 ),
         etni3 = na_if(etni3, -1), 
@@ -340,8 +387,8 @@ liss_long %>%
          etni_EI =  - ((etni_E - etni_I) / (etni_E + etni_I)),
         
           ego_id = nomem_encr) %>%
-  filter(!is.na(pol_int))   %>%
-  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, educ_EI, gender_EI, leeftijd_EI, etni_EI )-> datajt_nk
+  #filter(!is.na(pol_int))   %>%
+  select(ego_id,  survey_wave, leeftijd, leeftijd_cat13,  opl4, geslacht, etni3, cdn_size, cdn_size_educ, cdn_size_age, educ_EI,educ_sim,gender_EI, leeftijd_EI, leeftijd_sim, etni_EI )  -> datajt_nk
 
 
 
@@ -352,7 +399,12 @@ test <- cut(as.numeric(liss_long$leeftijd),breaks = c(-Inf, 15, 20, 25, 30, 35, 
 save(datajt, file="./data/datajt.rda")
 save(datajt_nk, file="./data/datajt_nk.rda")
 
-rm(list=ls())  
+#cor.test(datajt$educ_EI, datajt$educ_sim)
+#cor.test(datajt$leeftijd_EI, datajt$leeftijd_sim)
+
+#hist(datajt$leeftijd_sim)
+
+#rm(list=ls())  
 ```
 
 --- 

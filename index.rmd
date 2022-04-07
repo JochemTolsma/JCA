@@ -110,12 +110,12 @@ fpackage.check(packages)
 - My chair, supported by the James Coleman Association, has the title: **Social Divisions Between Groups**. 
 
 
-```{r, fig.cap="Fig 1. Social Divisions Between Groups"}
+```{r, fig.cap="Figure 1. Social Divisions Between Groups"}
 
 # create Venn diagram with three sets
 v <- draw.triple.venn(area1=40, area2=40, area3=40,
 				n12=10, n23=10, n13=10, n123=5,
-				category=c("Inequality","Polarization", "segregation"), cat.dist = -.1, cat.cex=1.5,
+				category=c("Inequality","Polarization", "Segregation"), cat.dist = -.1, cat.cex=1.5,
 				col="Red",fill=c("Green","Yellow","Blue"),
 				lwd=3,
 				alpha = .3,
@@ -145,8 +145,14 @@ grid.newpage()
 # Inequality
 
 The unequal distribution of resources. 
-
+<!---
 <iframe src="https://jtolsma.shinyapps.io/Gini2/" height="405" width="720" style="border: 1px solid #464646;" allowfullscreen="" allow="autoplay"></iframe>
+---> 
+
+```{r, fig.cap="Figure 2. Inequality" , out.width = '50%'}
+knitr::include_graphics("./gini.png")
+```
+
 
 ---  
 
@@ -155,7 +161,7 @@ The unequal distribution of resources.
 The unequal distribution of opinions. 
 
 
-```{r, fig.cap="Fig 2. Opinion polarization"}
+```{r, fig.cap="Figure 3. Polarization"}
 set.seed(1234)
 
 dat <- data.frame(group = factor(rep(c("group A","group B"), each=200)), 
@@ -320,7 +326,7 @@ iniworld <- function(N=2000, cn=4, h=1, tc=.9, pg=c(0.5,0.5), distropTN=TRUE, pl
 iniworld(N=2000, cn=16, h=0.9, tc=0.8, pg=c(0.7, 0.3), distropTN=TRUE, plotworld=TRUE)
 ```
 
-Fig 3. Residential segregation
+Figure 4. Segregation
 
 ---   
 
@@ -343,12 +349,12 @@ Fig 3. Residential segregation
 
 # Why segregation?  
 
-- We don't much about segregation:  
+- We don't know much about trends in segregation:  
   * Is it increasing or decreasing over time?  
-  * Along which social dimension is segregation most prominent?  
-  * Within which social context is segregation most prominent?  
+  * Along which social dimension is segregation most prominent and does this change over time?  
+  * Within which social context is segregation most prominent and does this change over time?  
   * Is segregation mainly the result of polarization and inequality or the cause for polarization and inequality?  
-  * Do we need to take action and through which policies? 
+  * Do we need to take action and, if so, through which policies? 
 
 ---  
 
